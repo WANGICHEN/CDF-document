@@ -3,7 +3,7 @@ import os
 import cdf
 import tempfile
 
-st.title("PDF → Word 自動轉換工具")
+st.title("CDF")
 
 # 上傳 PDF
 cdf_file = st.file_uploader("請上傳 CDF 檔案", type=["xlsx"])
