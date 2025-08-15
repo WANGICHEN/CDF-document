@@ -24,10 +24,10 @@ def save_cdf_to_word(df):
             row_cells[i].text = str(value)
 
             # 將文字逐字處理，若是 ? 則變紅
-            for char in value:
-                run = para.add_run(char)
-                if char == '?':
-                    run.font.color.rgb = RGBColor(255, 0, 0)  # 紅色
+            # for char in value:
+            #     run = para.add_run(char)
+            if '?' in str(value):
+                run.font.color.rgb = RGBColor(255, 0, 0)  # 紅色
 
     return doc
 
@@ -46,4 +46,5 @@ def run(cdf_path):
     doc = save_cdf_to_word(cdf_df)
 
     return doc
+
 
