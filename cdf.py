@@ -23,11 +23,11 @@ def save_cdf_to_word(df):
             value = row[col] if col in row else ""
             row_cells[i].text = str(value)
 
-            # # 將文字逐字處理，若是 ? 則變紅
-            # for char in value:
-            #     run = para.add_run(char)
-            #     if char == '?':
-            #         run.font.color.rgb = RGBColor(255, 0, 0)  # 紅色
+            # 將文字逐字處理，若是 ? 則變紅
+            for char in value:
+                run = para.add_run(char)
+                if char == '?':
+                    run.font.color.rgb = RGBColor(255, 0, 0)  # 紅色
 
     return doc
 
@@ -37,8 +37,8 @@ def run(cdf_path):
     df = pd.read_excel('CDF_database_2025.03.27_Chris.xlsx')
     cdf_df = pd.read_excel(cdf_path)
     cdf_df = cdf_df.merge(
-        df[['Manufacturer/trademark', 'Type/model',
-        'Technical data', 'Standard']],
+        df[['Object/part No.', 'Manufacturer/trademark', 'Type/model',
+        'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC']],
         on=cdf_df.columns.to_list(),
         how='left'
         )
@@ -46,3 +46,4 @@ def run(cdf_path):
     doc = save_cdf_to_word(cdf_df)
 
     return doc
+
