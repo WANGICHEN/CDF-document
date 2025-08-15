@@ -1,5 +1,6 @@
 import pandas as pd
 from docx import Document
+from docx.shared import RGBColor
 
 columns = [
     'Object/part No.', 'Manufacturer/trademark', 'Type/model',
@@ -46,5 +47,6 @@ def run(cdf_path):
     doc = save_cdf_to_word(cdf_df)
 
     return doc
+
 
 
