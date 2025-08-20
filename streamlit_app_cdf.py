@@ -1,12 +1,14 @@
 import streamlit as st
 import os
 import cdf
+import bsmi
 import tempfile
 
-st.title("CDF")
-
+st.title("PDF → Word 自動轉換工具")
+bsmi_on = st.toggle("BSMI")
 # 上傳 PDF
 cdf_file = st.file_uploader("請上傳 CDF 檔案", type=["xlsx"])
+
 
 if cdf_file:
     # 檢查檔案是否為 Excel 檔案
@@ -23,7 +25,10 @@ if cdf_file:
             
             word_output_name = cdf_file.name.replace(".xlsx", f".docx")
             output_path = os.path.join(tmpdir, word_output_name)
-            doc = cdf.run(cdf_path)
+            if bsmi_on:
+                doc = bsmi.run(cdf_path)
+            else:
+                doc = cdf.run(cdf_path)
             doc.save(output_path)
 
             with open(output_path, "rb") as out_file:
