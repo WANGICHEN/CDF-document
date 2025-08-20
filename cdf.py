@@ -61,6 +61,7 @@ def run(cdf_path):
     # 讀取 Excel 檔案
     df = pd.read_excel('CDF_database_2025.03.27_Chris.xlsx')
     cdf_df = pd.read_excel(cdf_path)
+    cdf_df = cdf_df[['Manufacturer/trademark', 'Type/model']]
     cdf_df = cdf_df.merge(
         df[['Object/part No.', 'Manufacturer/trademark', 'Type/model',
         'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC']],
@@ -69,3 +70,4 @@ def run(cdf_path):
         )
     doc = save_cdf_to_word(cdf_df)
     return doc
+
