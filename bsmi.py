@@ -21,7 +21,20 @@ def comp_translation(comp, comp_df):
 
 
 def save_cdf_to_word(df):
-    # 建立一個 Word 文件
+     # 讀取 Excel 檔案
+    
+    share_url = "https://z28856673-my.sharepoint.com/:x:/g/personal/itek_project_i-tek_com_tw/EV_kkQot_hZNsD8LFYQLfqoBWvR5p28e8_7yvoQXeVHtkg?e=SgUjeV"
+
+    # 多數 SharePoint 連結加上 download=1 
+    download_url = share_url + ("&download=1" if "?" in share_url else "?download=1")
+
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(download_url, headers=headers, allow_redirects=True, timeout=30)
+    r.raise_for_status()  # 403/404 會在這裡丟錯
+
+    comp_df = pd.read_excel(BytesIO(r.content), sheet_name=0)  # 或指定 sheet_name
+    
+    
     comp_df = pd.read_excel('component_translate.xlsx')
     doc = Document()
     # 加入表格：rows 為資料列數 + 標題列, cols 為欄位數
@@ -88,7 +101,6 @@ def run(cdf_path):
     r.raise_for_status()  # 403/404 會在這裡丟錯
 
     df = pd.read_excel(BytesIO(r.content), sheet_name=0)  # 或指定 sheet_name
-    print(df.head())
 
 
     # df = pd.read_excel(url, sheet_name='CDF_database_2025.03.27_Chris')
@@ -101,4 +113,5 @@ def run(cdf_path):
         how='left'
         )
     doc = save_cdf_to_word(cdf_df)
+
     return doc
