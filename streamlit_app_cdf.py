@@ -25,16 +25,16 @@ if cdf_file:
             
             word_output_name = cdf_file.name.replace(".xlsx", f".docx")
             output_path = os.path.join(tmpdir, word_output_name)
-            if bsmi_on:
-                doc = bsmi.run(cdf_path)
-            else:
-                doc = cdf.run(cdf_path)
-            doc.save(output_path)
 
-            with open(output_path, "rb") as out_file:
-                st.download_button(
-                    label=f"下載 Word 檔",
-                    data=out_file,
-                    file_name=word_output_name,
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+            if bsmi_on:
+                excel_bytes = bsmi.run(cdf_path)
+            else:
+                excel_bytes = cdf.run(cdf_path)
+
+                        
+            st.download_button(
+                label="下載 Excel 檔",
+                data=excel_bytes,
+                file_name=cdf_file.name.replace(".xlsx", "_output.xlsx"),
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
