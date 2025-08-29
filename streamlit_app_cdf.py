@@ -3,6 +3,10 @@ import os
 import cdf
 import bsmi
 import tempfile
+from docx import Document
+import transfer_word as transfer
+import requests
+from io import BytesIO  
 
 st.title("零件用料轉換工具")
 search = st.checkbox("零件用料轉換")
@@ -41,22 +45,18 @@ if cdf_file:
                 
             elif to_word:
                 if bsmi_on:
-                    share_url = "https://z28856673-my.sharepoint.com/:w:/g/personal/itek_project_i-tek_com_tw/EeB4hWsOTB5IjDyBxSuJEaUBbO47AYSYQjeFLVZ5jxtLmg?e=FZChvW"
+                    f = "BSMI_CDF_Template.docx"
                 else:
-                    share_url = "https://z28856673-my.sharepoint.com/:w:/g/personal/itek_project_i-tek_com_tw/ES_tVpCqqUxBq4N7g7f-wRQBl7RGN2XxUPt6lSiNYOZcPQ?e=wwGh03"
-                # 多數 SharePoint 連結加上 download=1 可直下（若仍 403，請看下方 路徑B）
-                download_url = share_url + ("&download=1" if "?" in share_url else "?download=1")
-            
-                headers = {"User-Agent": "Mozilla/5.0"}
-                r = requests.get(download_url, headers=headers, allow_redirects=True, timeout=30)
-                r.raise_for_status()  # 403/404 會在這裡丟錯
-                doc = Document(BytesIO(r.content))
+                    f = "UL_CDF_Template.docx"
+                doc = Document(f)
                 output = transfer.WriteInDataSheet(doc, cdf_path)
+                buffer = BytesIO()
+                output.save(buffer)
+                buffer.seek(0)
 
                 st.download_button(
                     label=f"下載 Word 檔",
-                    data=output,
+                    data=buffer,
                     file_name=word_output_name,
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-
 
