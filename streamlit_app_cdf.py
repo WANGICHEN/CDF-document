@@ -50,7 +50,7 @@ if cdf_file:
                 headers = {"User-Agent": "Mozilla/5.0"}
                 r = requests.get(download_url, headers=headers, allow_redirects=True, timeout=30)
                 r.raise_for_status()  # 403/404 會在這裡丟錯
-                doc = Document(BytesIO(r.content)
+                doc = Document(BytesIO(r.content))
                 output = transfer.WriteInDataSheet(doc, cdf_path)
 
                 st.download_button(
@@ -58,4 +58,5 @@ if cdf_file:
                     data=output,
                     file_name=word_output_name,
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
 
