@@ -45,9 +45,9 @@ if cdf_file:
                 
             elif to_word:
                 if bsmi_on:
-                    f = "BSMI_CDF_Template.docx"
+                    f = "BSMI_CDF_template.docx"
                 else:
-                    f = "UL_CDF_Template.docx"
+                    f = "UL_CDF_template.docx"
                 doc = Document(f)
                 output = transfer.WriteInDataSheet(doc, cdf_path)
                 buffer = BytesIO()
@@ -59,4 +59,5 @@ if cdf_file:
                     data=buffer,
                     file_name=word_output_name,
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
 
