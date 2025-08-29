@@ -4,10 +4,13 @@ import cdf
 import bsmi
 import tempfile
 
-st.title("PDF → Word 自動轉換工具")
+st.title("零件用料轉換工具")
+search = st.checkbox("零件用料轉換")
+to_word = st.checkbox("文件檔傳換")
+
 bsmi_on = st.toggle("BSMI")
 # 上傳 PDF
-cdf_file = st.file_uploader("請上傳 CDF 檔案", type=["xlsx"])
+cdf_file = st.file_uploader("請上傳想要轉換的檔案", type=["xlsx"])
 
 
 if cdf_file:
@@ -16,7 +19,6 @@ if cdf_file:
         st.error("請上傳一個有效的 Excel 檔案 (.xlsx)")
     else:
         with tempfile.TemporaryDirectory() as tmpdir:
-            # 儲存 PDF
             cdf_path = os.path.join(tmpdir, cdf_file.name)
             # Save the uploaded file to cdf_path
             with open(cdf_path, "wb") as f:
@@ -26,15 +28,34 @@ if cdf_file:
             word_output_name = cdf_file.name.replace(".xlsx", f".docx")
             output_path = os.path.join(tmpdir, word_output_name)
 
-            if bsmi_on:
-                excel_bytes = bsmi.run(cdf_path)
-            else:
-                excel_bytes = cdf.run(cdf_path)
+            if search:
+                if bsmi_on:
+                    excel_bytes = bsmi.run(cdf_path)
+                else:
+                    excel_bytes = cdf.run(cdf_path)
+                st.download_button(
+                    label="下載 Excel 檔",
+                    data=excel_bytes,
+                    file_name=cdf_file.name.replace(".xlsx", "_output.xlsx"),
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                
+            elif to_word:
+                if bsmi_on:
+                    share_url = "https://z28856673-my.sharepoint.com/:w:/g/personal/itek_project_i-tek_com_tw/EeB4hWsOTB5IjDyBxSuJEaUBbO47AYSYQjeFLVZ5jxtLmg?e=FZChvW"
+                else:
+                    share_url = "https://z28856673-my.sharepoint.com/:w:/g/personal/itek_project_i-tek_com_tw/ES_tVpCqqUxBq4N7g7f-wRQBl7RGN2XxUPt6lSiNYOZcPQ?e=wwGh03"
+                # 多數 SharePoint 連結加上 download=1 可直下（若仍 403，請看下方 路徑B）
+                download_url = share_url + ("&download=1" if "?" in share_url else "?download=1")
+            
+                headers = {"User-Agent": "Mozilla/5.0"}
+                r = requests.get(download_url, headers=headers, allow_redirects=True, timeout=30)
+                r.raise_for_status()  # 403/404 會在這裡丟錯
+                doc = Document(BytesIO(r.content)
+                output = transfer.WriteInDataSheet(doc, cdf_path)
 
-                        
-            st.download_button(
-                label="下載 Excel 檔",
-                data=excel_bytes,
-                file_name=cdf_file.name.replace(".xlsx", "_output.xlsx"),
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
+                st.download_button(
+                    label=f"下載 Word 檔",
+                    data=output,
+                    file_name=word_output_name,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
