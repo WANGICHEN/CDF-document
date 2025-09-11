@@ -1,9 +1,7 @@
 import streamlit as st
 import os
-# import cdf
-import cdf_3 as cdf
-# import bsmi
-import bsmi_v3 as bsmi
+import cdf
+import bsmi
 import tempfile
 from docx import Document
 import transfer_word as transfer
@@ -78,6 +76,7 @@ if cdf_file:
                     data=buffer,
                     file_name=word_output_name,
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
 
 
 
