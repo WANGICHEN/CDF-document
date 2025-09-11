@@ -12,20 +12,49 @@ columns = [
     'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC'
 ]
 
+def clean_str(x):
+    if pd.isna(x):
+        return ""
+    s = str(x).strip()
+    return "" if s.lower() in {"nan", "none"} else s
+
 def get_cdf(cdf, database):
+    output = pd.DataFrame(columns=columns)
+
+    # 預先把 database 要比對的欄位正規化（加速與一致性）
+    db_model = database['Type/model'].astype(str).str.strip().str.lower()
+    db_manu  = database['Manufacturer/trademark'].astype(str).str.strip().str.lower()
+
     for idx, cdf_row in cdf.iterrows():
-    # 找到 df 中有包含 cdf_df 欄位文字的 row
-        manu = str(cdf_row['Manufacturer/trademark']).strip()
-        model = str(cdf_row['Type/model']).strip()
-        matched = database[
-            database['Manufacturer/trademark'].astype(str).str.strip().str.contains(manu, case=False, na=False, regex=False) &
-            database['Type/model'].astype(str).str.strip().str.contains(model, case=False, na=False, regex=False)
-        ]
-        # 如果有找到，補資料
-        if not matched.empty:
-            for col in ['Object/part No.', 'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC']:
-                cdf.at[idx, col] = matched.iloc[0][col]
-    return cdf[columns]  
+
+        manu_raw  = cdf_row.get('Manufacturer/trademark')
+        model_raw = cdf_row.get('Type/model')
+
+        manu  = clean_str(manu_raw).lower()
+        model = clean_str(model_raw).lower()
+
+        # 沒提供 model 就很難比對，直接回填原始列
+        if not model:
+            df = pd.DataFrame([cdf_row], columns=columns)
+            output = pd.concat([output, df], ignore_index=True)
+            continue
+
+        # 先用 model 模糊比對
+        mask = db_model.str.contains(model, case=False, na=False, regex=False)
+
+        # 再視情況加上廠牌條件（只有在 manu 有值時才加)
+        if manu:
+            mask = mask & db_manu.str.contains(manu, case=False, na=False, regex=False)
+
+        df = database[mask]
+
+        # 找不到就補原始列
+        if df.empty:
+            df = pd.DataFrame([cdf_row], columns=columns)
+
+        output = pd.concat([output, df], ignore_index=True)
+
+    return output[columns]
 
 
 def run(cdf_path):
