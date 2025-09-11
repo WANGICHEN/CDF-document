@@ -12,66 +12,104 @@ columns = [
     'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC'
 ]
 
+def clean_str(x):
+    if pd.isna(x):
+        return ""
+    s = str(x).strip()
+    return "" if s.lower() in {"nan", "none"} else s
+
 def comp_translation(comp, comp_df):
     result = comp_df[comp_df['english'] == comp]
     if result.empty:
         return comp
     else:
         return result['chinese'].values[0]
+    
+def count_ul(segs):
+    ul_count = 0
+    for s in segs:
+        if "UL" in s.upper():
+            ul_count += 1
+
+    if len(segs) > ul_count:
+        ul_del = True
+    else:
+        ul_del = False
+
+    return ul_del
+
+def del_ul_edition(segs, ul_del = True):
+    ss = []
+    for s in segs:
+        s = s.strip()
+        if ul_del:
+            if all(x not in s.upper() for x in ["UL", "EDITION"]):
+                if ":" in s or "：" in s:
+                    s = s.split(":")[0].strip()
+                ss.append(s)
+        else:
+            ss.append(s)
+    return ss
+
+def clean_data(df):
+    comp_df = pd.read_excel('component_translate.xlsx')
+    for idx, cdf_row in df.iterrows():
+        for col in ['Object/part No.', 'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC']:
+            if col == 'Object/part No.':
+                data = comp_translation(cdf_row[col], comp_df)
+            else:
+                text = str(cdf_row[col])
+                # 去除 UL 的部分
+                segs = [s.strip() for s in text.split(",")]
+                
+                if col == 'Standard':
+                    ul_del = count_ul(segs)
+
+                    ss = del_ul_edition(segs, ul_del)
+                else:
+                    ss = del_ul_edition(segs)
+                data = ", ".join(ss)
+
+            df.at[idx, col] = data
+    return df
 
 def get_bsmi(cdf, database):
-    comp_df = pd.read_excel('component_translate.xlsx')
+    output = pd.DataFrame(columns=columns)
+
+    # 預先把 database 要比對的欄位正規化（加速與一致性）
+    db_model = database['Type/model'].astype(str).str.strip().str.lower()
+    db_manu  = database['Manufacturer/trademark'].astype(str).str.strip().str.lower()
+
     for idx, cdf_row in cdf.iterrows():
-    # 找到 df 中有包含 cdf_df 欄位文字的 row
-        manu = str(cdf_row['Manufacturer/trademark']).strip()
-        model = str(cdf_row['Type/model']).strip()
-        matched = database[
-            database['Manufacturer/trademark'].astype(str).str.strip().str.contains(manu, case=False, na=False, regex=False) &
-            database['Type/model'].astype(str).str.strip().str.contains(model, case=False, na=False, regex=False)
-        ]
-        # 如果有找到，補資料
-        if not matched.empty:
-            for col in ['Object/part No.', 'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC']:
-                if col == 'Object/part No.':
-                    data = comp_translation(matched.iloc[0][col], comp_df)
-                else:
-                    text = str(matched.iloc[0][col])
-                    # 去除 UL 的部分
-                    segs = [s.strip() for s in text.split(",")]
-                    
-                    if col == 'Standard':
-                        ul_count = 0
-                        for s in segs:
-                            if "UL" in s.upper():
-                                ul_count += 1
 
-                        if len(segs) > ul_count:
-                            ul_del = True
-                        else:
-                            ul_del = False
+        manu_raw  = cdf_row.get('Manufacturer/trademark')
+        model_raw = cdf_row.get('Type/model')
 
-                        ss = []
-                        for s in segs:
-                            s = s.strip()
-                            if ul_del:
-                                if all(x not in s.upper() for x in ["UL", "EDITION"]):
-                                    if ":" in s or "：" in s:
-                                        s = s.split(":")[0].strip()
-                                    ss.append(s)
-                            else:
-                                ss.append(s)
-                    else:
-                        ss = []
-                        for s in segs:
-                            s = s.strip()
-                            if all(x not in s.upper() for x in ["UL", "EDITION"]):
-                                if ":" in s or "：" in s:
-                                    s = s.split(":")[0].strip()
-                                ss.append(s)
-                    data = ", ".join(ss)
+        manu  = clean_str(manu_raw).lower()
+        model = clean_str(model_raw).lower()
 
-                cdf.at[idx, col] = data
-    return cdf[columns]
+        # 沒提供 model 就很難比對，直接回填原始列
+        if not model:
+            df = pd.DataFrame([cdf_row], columns=columns)
+            output = pd.concat([output, df], ignore_index=True)
+            continue
+
+        # 先用 model 模糊比對
+        mask = db_model.str.contains(model, case=False, na=False, regex=False)
+
+        # 再視情況加上廠牌條件（只有在 manu 有值時才加)
+        if manu:
+            mask = mask & db_manu.str.contains(manu, case=False, na=False, regex=False)
+
+        df = database[mask]
+
+        # 找不到就補原始列
+        if df.empty:
+            df = pd.DataFrame([cdf_row], columns=columns)
+
+        output = pd.concat([output, clean_data(df)], ignore_index=True)
+
+    return output[columns]
 
 
 
@@ -88,10 +126,6 @@ def run(cdf_path):
     r.raise_for_status()  # 403/404 會在這裡丟錯
 
     df = pd.read_excel(BytesIO(r.content), sheet_name=0)  # 或指定 sheet_name
-    print(df.head())
-
-
-    # df = pd.read_excel(url, sheet_name='CDF_database_2025.03.27_Chris')
     
     cdf_df = pd.read_excel(cdf_path)
     cdf_df = get_bsmi(cdf_df, df)
