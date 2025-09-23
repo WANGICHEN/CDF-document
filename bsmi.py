@@ -54,7 +54,7 @@ def del_ul_edition(segs, ul_del = True):
 def clean_data(df):
     comp_df = pd.read_excel('component_translate.xlsx')
     for idx, cdf_row in df.iterrows():
-        for col in ['Object/part No.', 'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC']:
+        for col in ['Object/part No.', 'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC/BSMI']:
             if col == 'Object/part No.':
                 data = comp_translation(cdf_row[col], comp_df)
             else:
@@ -133,4 +133,5 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
 
