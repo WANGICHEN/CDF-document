@@ -9,7 +9,7 @@ from io import BytesIO
 
 columns = [
     'Object/part No.', 'Manufacturer/trademark', 'Type/model',
-    'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC'
+    'Technical data', 'Standard', 'Mark(s) of conformity', 'website (UL)', 'VDE/TUV/ENEC/BSMI'
 ]
 
 def clean_str(x):
@@ -133,3 +133,4 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
