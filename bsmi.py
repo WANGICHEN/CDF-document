@@ -62,13 +62,13 @@ def clean_data(df):
                 text = str(cdf_row[col])
                 # 去除 UL 的部分
                 segs = [s.strip() for s in text.split(",")]
-                
-                if col == 'Standard':
-                    ul_del = count_ul(segs)
-
-                    ss = del_ul_edition(segs, ul_del)
-                else:
-                    ss = del_ul_edition(segs)
+                if col not in ['website (UL)', 'VDE/TUV/ENEC/BSMI']:
+                    if col == 'Standard':
+                        ul_del = count_ul(segs)
+    
+                        ss = del_ul_edition(segs, ul_del)
+                    else:
+                        ss = del_ul_edition(segs)
                 data = ", ".join(ss)
 
             df.at[idx, col] = data
@@ -134,6 +134,7 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
 
 
 
