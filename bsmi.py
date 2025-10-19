@@ -19,7 +19,7 @@ def clean_str(x):
     return "" if s.lower() in {"nan", "none"} else s
 
 def comp_translation(comp, comp_df):
-    result = comp_df[comp_df['english'].lower() == comp.lower()]
+    result = comp_df[comp_df['english'].str.lower() == comp.lower()]
     if result.empty:
         return comp
     else:
@@ -133,6 +133,7 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
 
 
 
