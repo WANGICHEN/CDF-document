@@ -88,7 +88,12 @@ def get_bsmi(cdf, database):
     r = requests.get(download_url, headers=headers, allow_redirects=True, timeout=30)
     r.raise_for_status()  # 403/404 會在這裡丟錯
 
-    trans_df = pd.read_excel(BytesIO(r.content), sheet_name=0)  # 或指定 sheet_name
+    trans_df = pd.read_excel(BytesIO(r.content), encoding='utf-8-sig')  # 或指定 sheet_name
+    # alias = {
+    # '英文名稱': 'english',
+    # '中文名稱': 'chinese',
+    # }
+    # trans_df = trans_df.rename(columns=lambda c: alias.get(c, c))
     ##
     print(trans_df)
     
@@ -151,6 +156,7 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
 
 
 
