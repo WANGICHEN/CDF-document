@@ -90,7 +90,7 @@ def get_bsmi(cdf, database):
 
     trans_df = pd.read_excel(BytesIO(r.content), sheet_name=0)  # 或指定 sheet_name
     ##
-
+    print(trans_df)
     
     output = pd.DataFrame(columns=columns)
 
@@ -151,6 +151,7 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
 
 
 
