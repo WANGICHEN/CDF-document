@@ -19,12 +19,12 @@ def clean_str(x):
     return "" if s.lower() in {"nan", "none"} else s
 
 def comp_translation(comp, comp_df):
-    result = comp_df[comp_df['english'] == comp]
-    result = comp_df[comp_df['english'].str.contains(comp, case=False, na=False)]
+    result = comp_df[comp_df['英文名稱'] == comp]
+    result = comp_df[comp_df['英文名稱'].str.contains(comp, case=False, na=False)]
     if result.empty:
         return comp
     else:
-        return result['chinese'].values[0]
+        return result['中文名稱'].values[0]
     
 def count_ul(segs):
     ul_count = 0
@@ -151,6 +151,7 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
 
 
 
