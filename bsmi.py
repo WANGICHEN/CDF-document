@@ -19,8 +19,12 @@ def clean_str(x):
     return "" if s.lower() in {"nan", "none"} else s
 
 def comp_translation(comp, comp_df):
-    result = comp_df[comp_df['英文名稱'] == comp]
-    result = comp_df[comp_df['英文名稱'].str.contains(comp, case=False, na=False)]
+    # result = comp_df[comp_df['英文名稱'] == comp]
+    # result = comp_df[comp_df['英文名稱'].str.contains(comp, case=False, na=False, regex=False)]
+    if comp in comp_df['英文名稱'].values:
+        result = comp_df[comp_df['英文名稱'] == comp]
+    else:
+        result = comp_df[comp_df['英文名稱'].str.contains(comp, case=False, na=False, regex=False)]
     if result.empty:
         return comp
     else:
@@ -150,6 +154,7 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
 
 
 
