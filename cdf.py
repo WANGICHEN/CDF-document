@@ -24,14 +24,24 @@ def get_cdf(cdf, database):
     # 預先把 database 要比對的欄位正規化（加速與一致性）
     db_model = database['Type/model'].astype(str).str.strip().str.lower()
     db_manu  = database['Manufacturer/trademark'].astype(str).str.strip().str.lower()
+    db_obj = database['Object/part No.'].astype(str).str.strip().str.lower()
+    current_obj = None
 
     for idx, cdf_row in cdf.iterrows():
 
-        manu_raw  = cdf_row.get('Manufacturer/trademark')
         model_raw = cdf_row.get('Type/model')
+        manu_raw = cdf_row.get('Manufacturer/trademark')
+        obj_raw = cdf_row.get('Object/part No.')
 
-        manu  = clean_str(manu_raw).lower()
         model = clean_str(model_raw).lower()
+        manu  = clean_str(manu_raw).lower()
+        obj = clean_str(obj_raw).lower()
+
+        if current_obj == obj:
+            duplicate = 1
+        else:
+            current_obj = obj
+            duplicate = 0
 
         # 沒提供 model 就很難比對，直接回填原始列
         if not model:
@@ -45,12 +55,16 @@ def get_cdf(cdf, database):
         # 再視情況加上廠牌條件（只有在 manu 有值時才加)
         if manu:
             mask = mask & db_manu.str.contains(manu, case=False, na=False, regex=False)
+        if obj:
+            mask = mask & db_obj.str.contains(obj, case=False, na=False, regex=False)
 
         df = database[mask]
 
         # 找不到就補原始列
         if df.empty:
             df = pd.DataFrame([cdf_row], columns=columns)
+        elif duplicate:
+            df["Object/part No."] = "(Alternate)"
 
         output = pd.concat([output, df], ignore_index=True)
 
@@ -77,3 +91,4 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
