@@ -7,7 +7,18 @@ columns = [
     'Technical data', 'Standard', 'Mark(s) of conformity'
 ]
 
-def WriteInDataSheet(doc, cdf_path):
+def style_setting(doc, bsmi_on):
+    if bsmi_on:
+        style = doc.styles['Normal']
+        style.font.name = 'Arial'
+        style._element.rPr.rFonts.set(qn('w:eastAsia'), "標楷體")
+        style.font.size = Pt(11)
+    else:
+        style = doc.styles['Normal']
+        style.font.name = 'Arial'
+        style.font.size = Pt(10)
+
+def WriteInDataSheet(doc, cdf_path, bsmi_on):
 
     cdf_df = pd.read_excel(cdf_path)
     cdf_df = cdf_df[columns]
@@ -31,5 +42,5 @@ def WriteInDataSheet(doc, cdf_path):
         insert_pos += 1  # 下一個插在後面
 
     table._tbl.remove(table.rows[start_row + 1]._tr)  # 刪除原有的空白行
-
+    style_setting(doc, bsmi_on)
     return doc
