@@ -1,6 +1,9 @@
 import pandas as pd
 from docx import Document
 from copy import deepcopy
+from docx.shared import Pt
+from docx.oxml.ns import qn
+
 
 columns = [
     'Object/part No.', 'Manufacturer/trademark', 'Type/model',
@@ -44,3 +47,4 @@ def WriteInDataSheet(doc, cdf_path, bsmi_on):
     table._tbl.remove(table.rows[start_row + 1]._tr)  # 刪除原有的空白行
     style_setting(doc, bsmi_on)
     return doc
+
