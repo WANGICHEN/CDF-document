@@ -66,7 +66,7 @@ if cdf_file:
                 r.raise_for_status()  # 403/404 會在這裡丟錯
                 
                 doc = Document(BytesIO(r.content))
-                output = transfer.WriteInDataSheet(doc, cdf_path)
+                output = transfer.WriteInDataSheet(doc, cdf_path, bsmi_on)
                 buffer = BytesIO()
                 output.save(buffer)
                 buffer.seek(0)
@@ -76,6 +76,7 @@ if cdf_file:
                     data=buffer,
                     file_name=word_output_name,
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
 
 
 
