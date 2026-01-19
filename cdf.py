@@ -70,7 +70,7 @@ def get_cdf(cdf, database):
 
         output = pd.concat([output, df], ignore_index=True)
 
-    output.loc[output["Object/part No."].duplicated(keep="first"), "Object/part No."] = "Alternate"
+    output.loc[output["Object/part No."].duplicated(keep="first"), "Object/part No."] = "(Alternate)"
 
     return output[columns]
 
@@ -97,3 +97,4 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
