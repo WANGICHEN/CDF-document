@@ -18,6 +18,13 @@ def clean_str(x):
     s = str(x).strip()
     return "" if s.lower() in {"nan", "none"} else s
 
+def check_y_capacitor(obj, tech_data):
+    print(obj, tech_data)
+    if obj in tech_data:
+        return True
+    else:
+        return False
+
 def get_cdf(cdf, database):
     output = pd.DataFrame(columns=columns)
 
@@ -25,7 +32,9 @@ def get_cdf(cdf, database):
     db_model = database['Type/model'].astype(str).str.strip().str.lower()
     db_manu  = database['Manufacturer/trademark'].astype(str).str.strip().str.lower()
     db_obj = database['Object/part No.'].astype(str).str.strip().str.lower()
-    current_obj = None
+    current_obj = ""
+    Y_CAP = None
+    duplicate = 0
 
     for idx, cdf_row in cdf.iterrows():
 
@@ -37,11 +46,6 @@ def get_cdf(cdf, database):
         manu  = clean_str(manu_raw).lower()
         obj = clean_str(obj_raw).lower()
 
-        if current_obj == obj:
-            duplicate = 1
-        else:
-            current_obj = obj
-            duplicate = 0
 
         # 沒提供 model 就很難比對，直接回填原始列
         if not model:
@@ -63,12 +67,14 @@ def get_cdf(cdf, database):
         # 找不到就補原始列
         if df.empty:
             df = pd.DataFrame([cdf_row], columns=columns)
-        elif duplicate:
-            df["Object/part No."] = "(Alternate)"
 
         output = pd.concat([output, df], ignore_index=True)
 
+    output.loc[output["Object/part No."].duplicated(keep="first"), "Object/part No."] = "Alternate"
+
     return output[columns]
+
+
 
 
 def run(cdf_path):
@@ -91,4 +97,3 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
-
