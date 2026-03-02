@@ -70,7 +70,7 @@ def get_cdf(cdf, database):
 
 
         df = database[mask]
-        if type and type[0] not in df['Technical data'].astype(str).str.strip().str.lower():
+        if type not "y1 or y2 type" and type[0] not in df['Technical data'].astype(str).str.strip().str.lower():
             df = pd.DataFrame([cdf_row], columns=columns)
 
         # 找不到就補原始列
@@ -109,3 +109,4 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
+
