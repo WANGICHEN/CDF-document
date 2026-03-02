@@ -60,17 +60,29 @@ def get_cdf(cdf, database):
         if manu:
             mask = mask & db_manu.str.contains(manu, case=False, na=False, regex=False)
         if obj:
+            if 'y-capacitor' in obj:
+                type = re.findall(r"\((.*?)\)", obj)
+                print(type, obj)
+                obj = 'y-capacitor (y1 or y2 type)'
             mask = mask & db_obj.str.contains(obj, case=False, na=False, regex=False)
+        else:
+            type = None
+
 
         df = database[mask]
+        if type and type[0] not in df['Technical data'].astype(str).str.strip().str.lower():
+            df = pd.DataFrame([cdf_row], columns=columns)
 
         # 找不到就補原始列
         if df.empty:
             df = pd.DataFrame([cdf_row], columns=columns)
 
         output = pd.concat([output, df], ignore_index=True)
+    grp = output["Object/part No."].ne(output["Object/part No."].shift()).cumsum()
+    mask = output.groupby(grp).cumcount() > 0
 
-    output.loc[output["Object/part No."].duplicated(keep="first"), "Object/part No."] = "(Alternate)"
+    output.loc[mask, "Object/part No."] = "Alternate"
+    # output.loc[output["Object/part No."].duplicated(keep="first"), "Object/part No."] = "Alternate"
 
     return output[columns]
 
@@ -97,4 +109,3 @@ def run(cdf_path):
     cdf_df.to_excel(output, index=False)
     output.seek(0)
     return output
-
